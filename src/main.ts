@@ -7,10 +7,10 @@ async function bootstrap() {
   app.enableCors();
 
   const config = new DocumentBuilder()
-    .setTitle('AptCash API')
-    .setDescription('API Documentation for AptCash')
+    .setTitle('Circled Fiat API')
+    .setDescription('API Documentation for Circled Fiat')
     .setVersion('1.0')
-    .addTag('aptcash')
+    .addTag('Circled Fiat')
     .addBearerAuth(
       {
         description: `Please enter token in following format: Bearer <JWT>`,
