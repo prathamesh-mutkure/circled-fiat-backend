@@ -1,0 +1,15 @@
+export const CIRCLE_DATA = {
+  WALLET_SET_ID: 'adf5c648-435c-5a60-8a67-b3f2ce667e3e',
+  ETH_SEP: {
+    NAME: 'ETH-SEPOLIA',
+    WALLET_ID: '45148e21-1bdb-5343-9924-4dba935ba263',
+    USDC_ID: '5797fbd6-3795-519d-84ca-ec4c5f80c3b1',
+    USDC_ADDRESS: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+  },
+  ARB_SEP: {
+    NAME: 'ARB-SEPOLIA',
+    WALLET_ID: '2fab92ff-dca3-5640-bee4-d0a2b4e96d66',
+    USDC_ID: '5797fbd6-3795-519d-84ca-ec4c5f80c3b1',
+    USDC_ADDRESS: '0x75faf114eafb1bdbe2f0316df893fd58ce46aa4d',
+  },
+};

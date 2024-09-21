@@ -8,11 +8,12 @@ import axios, { AxiosError } from 'axios';
 import { TokenToFiatDTO } from './dto/token-to-fiat.dto';
 import { initiateDeveloperControlledWalletsClient } from '@circle-fin/developer-controlled-wallets';
 import { Wallet } from '@circle-fin/developer-controlled-wallets/dist/types/clients/developer-controlled-wallets';
+import { CIRCLE_DATA } from 'src/constants';
 
 @Injectable()
 export class OnchainService {
   private client: ReturnType<typeof initiateDeveloperControlledWalletsClient>;
-  private wallets: Wallet[] = [];
+  private wallet: Wallet;
 
   constructor() {
     const client = initiateDeveloperControlledWalletsClient({
@@ -22,31 +23,42 @@ export class OnchainService {
 
     this.client = client;
 
-    this.createWallet();
+    this.getWallet();
+
+    // this.createWallet();
   }
 
   async createWallet() {
-    const walletSetResponse = await this.client.createWalletSet({
-      name: 'WalletSet 1',
+    // const walletSetResponse = await this.client.createWalletSet({
+    //   name: 'WalletSet 1',
+    // });
+
+    const walletSetResponse = await this.client.getWalletSet({
+      id: CIRCLE_DATA.WALLET_SET_ID,
     });
 
-    // console.log('Created WalletSet', walletSetResponse.data?.walletSet);
-
     const walletsResponse = await this.client.createWallets({
-      blockchains: ['ETH-SEPOLIA'],
-      count: 2,
-      walletSetId: walletSetResponse.data?.walletSet?.id ?? '',
+      // @ts-ignore-next
+      blockchains: ['ETH-SEPOLIA', 'ARB-SEPOLIA'],
+      count: 1,
+      walletSetId: walletSetResponse.data.walletSet.id ?? '',
     });
 
     const wallets = walletsResponse.data?.wallets;
 
-    // console.log('Created Wallets', wallets);
+    return wallets;
+  }
 
-    this.wallets = wallets ?? [];
+  async getWallet() {
+    const response = await this.client.getWallet({
+      id: CIRCLE_DATA.ARB_SEP.WALLET_ID,
+    });
+
+    this.wallet = response.data.wallet;
   }
 
   async getAccountData() {
-    const wallet = this.wallets[0];
+    const wallet = this.wallet;
 
     const response = await this.client.getWalletTokenBalance({
       id: wallet.id,
@@ -61,7 +73,34 @@ export class OnchainService {
   }
 
   async sendTransaction({ toAddress, amount }: SendTransactionDTO) {
-    return { toAddress, amount };
+    try {
+      const wallet = this.wallet;
+
+      const response = await this.client.createTransaction({
+        // @ts-ignore-next
+        blockchain: CIRCLE_DATA.ARB_SEP.NAME,
+        walletId: wallet.id,
+        tokenAddress: CIRCLE_DATA.ARB_SEP.USDC_ADDRESS,
+        destinationAddress: toAddress,
+        amount: [amount.toString()],
+        fee: {
+          type: 'level',
+          config: {
+            feeLevel: 'HIGH',
+          },
+        },
+      });
+
+      console.log(response.data);
+
+      return response.data;
+    } catch (e: any) {
+      const err = e as AxiosError;
+
+      throw new BadRequestException(
+        err.response.data ?? 'Failed to send transaction',
+      );
+    }
   }
 
   async getTokenPrice(token: string = '') {
