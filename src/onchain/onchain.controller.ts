@@ -24,6 +24,7 @@ export class OnchainController {
 
   @Post('send')
   sendTransaction(@Body() body: SendTransactionDTO) {
-    return this.onchainService.sendTransaction(body);
+    // return this.onchainService.sendTransaction(body);
+    return this.onchainService.cctpTest();
   }
 }
