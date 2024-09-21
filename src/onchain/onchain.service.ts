@@ -81,8 +81,10 @@ export class OnchainService {
         blockchain: CIRCLE_DATA.ARB_SEP.NAME,
         walletId: wallet.id,
         tokenAddress: CIRCLE_DATA.ARB_SEP.USDC_ADDRESS,
-        destinationAddress: toAddress,
-        amount: [amount.toString()],
+        // destinationAddress: toAddress,
+        // amount: [amount.toString()],
+        destinationAddress: CIRCLE_DATA.ARB_SEP.WALLET_ADDRESS,
+        amount: ['0.05'],
         fee: {
           type: 'level',
           config: {
@@ -93,7 +95,10 @@ export class OnchainService {
 
       console.log(response.data);
 
-      return response.data;
+      return response.data as {
+        id: string;
+        state: string;
+      };
     } catch (e: any) {
       const err = e as AxiosError;
 

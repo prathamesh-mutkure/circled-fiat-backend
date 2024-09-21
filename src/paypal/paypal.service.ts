@@ -48,20 +48,22 @@ export class PaypalService {
       throw new BadRequestException('Missing required fields');
     }
 
-    if (tokenAmount <= 0 || isNaN(tokenAmount) || tokenAmount >= 0.05) {
+    if (tokenAmount <= 0 || isNaN(tokenAmount) || tokenAmount >= 0.5) {
       throw new BadRequestException(
-        'For testing purposes, we have restricted the amount between 0.01-0.05',
+        'For testing purposes, we have restricted the amount between 0.01-0.5',
       );
     }
 
-    const userId = '9e363e6b-5358-452b-98fa-617fb1e496c3';
+    const userId = '7e93dcfe-3b25-45a9-a3b9-9cf10ccc8e2e';
 
     try {
       // Converted Token to USD
-      const fiatAmount = await this.onchainService.tokenToFiat({
-        amountInToken: tokenAmount,
-        to: 'usd',
-      });
+      // const fiatAmount = await this.onchainService.tokenToFiat({
+      //   amountInToken: tokenAmount,
+      //   to: 'usd',
+      // });
+
+      const fiatAmount = tokenAmount;
 
       // Created new Transaction in database
       const transaction = await this.transactionsService.create({ userId });
@@ -103,10 +105,15 @@ export class PaypalService {
       const onchainPayment = await this.prisma.onchainPayment.create({
         data: {
           // @ts-ignore
-          txHash: txn.onchainPayment,
+          // txHash: txn.onchainPayment,
+          // tokenAmount: tokenAmount,
+          // conversionCurrency: payment.transaction.currencyIsoCode,
+          // conversionRate: fiatAmount / tokenAmount,
+          // transactionId: transaction.id,
+          txHash: txn.id,
           tokenAmount: tokenAmount,
-          conversionCurrency: payment.transaction.currencyIsoCode,
-          conversionRate: fiatAmount / tokenAmount,
+          conversionCurrency: 'USD',
+          conversionRate: 1,
           transactionId: transaction.id,
         },
       });
@@ -127,7 +134,7 @@ export class PaypalService {
         message: 'Payment processed successfully',
         id: transaction.id,
         gatewayId: fiatPayment.gatewayId,
-        txHash: 'txn.hash',
+        txHash: txn.id,
       };
     } catch (err) {
       console.log(err);

@@ -9,6 +9,7 @@ export const CIRCLE_DATA = {
   ARB_SEP: {
     NAME: 'ARB-SEPOLIA',
     WALLET_ID: '2fab92ff-dca3-5640-bee4-d0a2b4e96d66',
+    WALLET_ADDRESS: '0x927a1477c90ddd07c220aa1aa595db6d45d16217',
     USDC_ID: '5797fbd6-3795-519d-84ca-ec4c5f80c3b1',
     USDC_ADDRESS: '0x75faf114eafb1bdbe2f0316df893fd58ce46aa4d',
   },
