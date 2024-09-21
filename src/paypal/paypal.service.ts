@@ -43,7 +43,12 @@ export class PaypalService {
     }
   }
 
-  async processTransaction({ nonce, toAddress, tokenAmount }: CheckoutDTO) {
+  async processTransaction({
+    nonce,
+    toAddress,
+    tokenAmount,
+    trackingId,
+  }: CheckoutDTO) {
     if (!nonce || !toAddress || !tokenAmount) {
       throw new BadRequestException('Missing required fields');
     }
@@ -62,6 +67,15 @@ export class PaypalService {
       //   amountInToken: tokenAmount,
       //   to: 'usd',
       // });
+
+      if (trackingId) {
+        const tracking = await this.prisma.tracking.create({
+          data: {
+            trackingId,
+            status: 'PENDING',
+          },
+        });
+      }
 
       const fiatAmount = tokenAmount;
 
@@ -130,6 +144,17 @@ export class PaypalService {
         },
       });
 
+      if (trackingId) {
+        await this.prisma.tracking.update({
+          where: {
+            trackingId,
+          },
+          data: {
+            status: 'COMPLETED',
+          },
+        });
+      }
+
       return {
         message: 'Payment processed successfully',
         id: transaction.id,
@@ -143,5 +168,19 @@ export class PaypalService {
         err?.message ?? 'Error processing payment',
       );
     }
+  }
+
+  async getTrackingStatus(trackingId: string) {
+    const tracking = await this.prisma.tracking.findUnique({
+      where: {
+        trackingId,
+      },
+    });
+
+    if (!tracking) {
+      return false;
+    }
+
+    return tracking.status === 'COMPLETED';
   }
 }

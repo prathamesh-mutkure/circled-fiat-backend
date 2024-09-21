@@ -9,4 +9,6 @@ export class CheckoutDTO {
 
   @IsNumber()
   tokenAmount: number;
+
+  trackingId?: string;
 }
