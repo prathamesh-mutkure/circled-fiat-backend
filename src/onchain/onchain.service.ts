@@ -10,6 +10,9 @@ import { initiateDeveloperControlledWalletsClient } from '@circle-fin/developer-
 import { Wallet } from '@circle-fin/developer-controlled-wallets/dist/types/clients/developer-controlled-wallets';
 import { CCTP_DATA, CIRCLE_DATA } from 'src/constants';
 import { eth } from 'web3';
+import { CCTPDomain, CCTPSdk } from '@automata-network/cctp-sdk';
+
+const testnetSdk = CCTPSdk().testnet();
 
 @Injectable()
 export class OnchainService {
@@ -119,18 +122,19 @@ export class OnchainService {
     }
   }
 
+  pause(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async cctpTest() {
-    const rpc = 'https://iris-api-sandbox.circle.com';
+    const amount = (1 * 1000000).toString();
 
     try {
       const res1 = await this.client.createContractExecutionTransaction({
-        walletId: this.wallet.id,
-        contractAddress: CIRCLE_DATA.ARB_SEP.USDC_ADDRESS,
+        walletId: this.polWallet.id,
+        contractAddress: CIRCLE_DATA.POL_DEV.USDC_ADDRESS,
         abiFunctionSignature: 'approve(address,uint256)',
-        abiParameters: [
-          CCTP_DATA.TokenMessenger.ARB_SEP,
-          (0.1 * 1000000).toString(),
-        ],
+        abiParameters: [CCTP_DATA.TokenMessenger.POL_DEV, amount],
         fee: {
           type: 'level',
           config: {
@@ -144,30 +148,27 @@ export class OnchainService {
 
       const encodedDestinationAddress = eth.abi.encodeParameter(
         'address',
-        CIRCLE_DATA.ETH_SEP.WALLET_ADDRESS,
+        CIRCLE_DATA.POL_DEV.WALLET_ADDRESS,
       );
 
+      // await this.pause(10000);
+      // return;
+
       const res2 = await this.client.createContractExecutionTransaction({
-        walletId: this.wallet.id,
-        contractAddress: CIRCLE_DATA.ARB_SEP.USDC_ADDRESS,
+        walletId: this.polWallet.id,
+        contractAddress: CIRCLE_DATA.POL_DEV.USDC_ADDRESS,
         abiFunctionSignature: 'depositForBurn(uint256,uint32,bytes32,address)',
         abiParameters: [
-          (0.1 * 1000000).toString(),
+          amount,
           '0',
           encodedDestinationAddress,
-          CIRCLE_DATA.ARB_SEP.USDC_ADDRESS,
+          CIRCLE_DATA.POL_DEV.USDC_ADDRESS,
         ],
         fee: {
           type: 'level',
           config: {
             feeLevel: 'HIGH',
           },
-          // type: 'absolute',
-          // config: {
-          //   gasLimit: '100000000',
-          //   maxFee: '1',
-          //   priorityFee: '1',
-          // },
         },
       });
 
