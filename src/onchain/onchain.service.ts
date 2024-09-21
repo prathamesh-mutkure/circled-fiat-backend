@@ -6,15 +6,57 @@ import {
 import { SendTransactionDTO } from './dto/send-transaction.dto';
 import axios, { AxiosError } from 'axios';
 import { TokenToFiatDTO } from './dto/token-to-fiat.dto';
+import { initiateDeveloperControlledWalletsClient } from '@circle-fin/developer-controlled-wallets';
+import { Wallet } from '@circle-fin/developer-controlled-wallets/dist/types/clients/developer-controlled-wallets';
 
 @Injectable()
 export class OnchainService {
-  constructor() {}
+  private client: ReturnType<typeof initiateDeveloperControlledWalletsClient>;
+  private wallets: Wallet[] = [];
+
+  constructor() {
+    const client = initiateDeveloperControlledWalletsClient({
+      apiKey: process.env.CIRCLE_API_KEY,
+      entitySecret: process.env.CIRCLE_SECRET,
+    });
+
+    this.client = client;
+
+    this.createWallet();
+  }
+
+  async createWallet() {
+    const walletSetResponse = await this.client.createWalletSet({
+      name: 'WalletSet 1',
+    });
+
+    // console.log('Created WalletSet', walletSetResponse.data?.walletSet);
+
+    const walletsResponse = await this.client.createWallets({
+      blockchains: ['ETH-SEPOLIA'],
+      count: 2,
+      walletSetId: walletSetResponse.data?.walletSet?.id ?? '',
+    });
+
+    const wallets = walletsResponse.data?.wallets;
+
+    // console.log('Created Wallets', wallets);
+
+    this.wallets = wallets ?? [];
+  }
 
   async getAccountData() {
+    const wallet = this.wallets[0];
+
+    const response = await this.client.getWalletTokenBalance({
+      id: wallet.id,
+    });
+
     return {
-      accountAddress: 'accountAddress',
-      publicKey: 'publicKey',
+      accountAddress: wallet.address,
+      blockchain: wallet.blockchain,
+      id: wallet.id,
+      tokenBalances: response.data.tokenBalances,
     };
   }
 
